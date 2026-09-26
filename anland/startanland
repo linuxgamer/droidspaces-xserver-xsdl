@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+# set if missing (su sessions)
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+
 # --- find the wayland socket published by anlandx ---
 if [ -z "$WAYLAND_DISPLAY" ]; then
     RD="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"

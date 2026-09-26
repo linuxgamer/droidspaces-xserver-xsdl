@@ -21,6 +21,13 @@ if [ -z "$DEFOUND" ]; then
 fi
 echo "detected DE:$DEFOUND"
 
+# --- the DE runs as whoever runs this script (root = plain unit, no changes) ---
+DE_USER="${SUDO_USER:-$(id -un)}"
+DE_UID="$(id -u "$DE_USER")"
+DE_GID="$(id -g "$DE_USER")"
+DE_HOME="$(awk -F: -v u="$DE_USER" '$1 == u {print $6}' /etc/passwd)"
+echo "desktop will run as: $DE_USER"
+
 # --- install launcher ---
 sudo mv startanland /usr/bin
 
@@ -50,17 +57,71 @@ case "$INIT" in
             echo "start /usr/bin/startanland manually instead"
             exit 1
         fi
-        sudo mv init/anland.service /etc/systemd/system
+        if [ "$DE_USER" = "root" ]; then
+            sudo mv init/anland.service /etc/systemd/system
+        else
+            sudo tee /etc/systemd/system/anland.service >/dev/null <<EOF
+[Unit]
+Description=Launches DE on anland (Wayland bridge).
+
+[Service]
+Type=simple
+WorkingDirectory=-$DE_HOME
+Environment=HOME=$DE_HOME
+Environment=XDG_RUNTIME_DIR=/run/user/$DE_UID
+User=$DE_USER
+ExecStartPre=+/usr/bin/mkdir -p /run/user/$DE_UID
+ExecStartPre=+/usr/bin/chown $DE_UID:$DE_GID /run/user/$DE_UID
+ExecStart=/usr/bin/startanland
+# anland host daemon may not be up when the container boots
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        fi
         sudo systemctl enable anland.service
         ;;
     openrc*)
-        sudo mv init/anland.openrc /etc/init.d/anland
+        if [ "$DE_USER" = "root" ]; then
+            sudo mv init/anland.openrc /etc/init.d/anland
+        else
+            sudo tee /etc/init.d/anland >/dev/null <<EOF
+#!/sbin/openrc-run
+
+description="Launches DE on anland (Wayland bridge)."
+
+depend() {
+	need localmount
+}
+
+start_pre() {
+	mkdir -p /run/user/$DE_UID
+	chown $DE_UID:$DE_GID /run/user/$DE_UID
+}
+
+command="/bin/su"
+command_args="-l $DE_USER -c /usr/bin/startanland"
+EOF
+        fi
         sudo chmod +x /etc/init.d/anland
         sudo rc-update add anland default
         ;;
     runit)
         sudo mkdir -p /etc/sv/anland
-        sudo mv init/anland.runit /etc/sv/anland/run
+        if [ "$DE_USER" = "root" ]; then
+            sudo mv init/anland.runit /etc/sv/anland/run
+        else
+            sudo tee /etc/sv/anland/run >/dev/null <<EOF
+#!/bin/sh
+[ -d /run/user/$DE_UID ] || {
+	mkdir -p /run/user/$DE_UID
+	chown $DE_UID:$DE_GID /run/user/$DE_UID
+}
+exec su -l '$DE_USER' -c /usr/bin/startanland
+EOF
+        fi
         sudo chmod +x /etc/sv/anland/run
         # enable = symlink into the service dir (path differs between distros)
         for svcdir in /run/runit/service /var/service; do

@@ -49,6 +49,7 @@ open **Xserver XSDL** on ur phone, reboot the container — desktop should pop u
 - **DE:** xfce, kde, mate, cinnamon, lxqt, lxde, gnome, budgie — autodetected, force one with `startxsdl kde`
 - **turnip distros:** debian (trixie), ubuntu (noble/questing/resolute), fedora (43/44), alpine (3.24), arch, void
 - **gpus:** arm64 + adreno only. tested adrenos: 660 710 720 722 730 732 735 740 750 810 829 830 840 (others *may* work, the script just warns)
+- **user:** the DE runs as whoever ran the installer (root in a stock droidspaces rootfs); non-root users get a proper per-user service (systemd `User=` / su wrapper)
 
 all scripts auto-detect stuff and tell u what they found; nothing gets auto-installed behind ur back.
 
@@ -90,7 +91,7 @@ sudo apt install xfce4 xfce4-terminal
 
 Открыть **Xserver XSDL** на телефоне, перезапустить контейнер — рабочий стол появится сам.
 
-**Поддерживается:** init — systemd/openrc/runit; DE — xfce/kde/mate/cinnamon/lxqt/lxde/gnome/budgie (`startxsdl kde` — явно указать); turnip — debian trixie / ubuntu noble,questing,resolute / fedora 43,44 / alpine 3.24 / arch / void; только arm64 + adreno (протестированы: 660 710 720 722 730 732 735 740 750 810 829 830 840).
+**Поддерживается:** init — systemd/openrc/runit; DE — xfce/kde/mate/cinnamon/lxqt/lxde/gnome/budgie (`startxsdl kde` — явно указать); turnip — debian trixie / ubuntu noble,questing,resolute / fedora 43,44 / alpine 3.24 / arch / void; только arm64 + adreno (протестированы: 660 710 720 722 730 732 735 740 750 810 829 830 840). DE запускается от того юзера, кто запускал установщик (в стандартном droidspaces rootfs это root); для обычных юзеров генерируется пользовательский сервис (systemd `User=` / su-обёртка).
 
 **Частые проблемы:** systemd-ошибка в chroot — запускать `/usr/bin/startxsdl` руками; «adreno not detected» — контейнер скрывает `/dev/kgsl`, предупреждение можно игнорировать; vulkan не работает — `MESA_LOADER_DRIVER_OVERRIDE=kgsl`; чёрный экран/нет звука — XSDL должен быть запущен, проверь `DISPLAY=127.0.0.1:0` и `PULSE_SERVER=tcp:127.0.0.1:4713`.
 

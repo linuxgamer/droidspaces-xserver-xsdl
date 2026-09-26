@@ -2,6 +2,8 @@
 
 export DISPLAY=127.0.0.1:0
 export PULSE_SERVER=tcp:127.0.0.1:4713
+# some DE parts expect it even over plain X11; set if missing (su sessions)
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
 # supported DEs, in autodetect priority order (xfce first = droidspaces default)
 declare -A DESKS=(
