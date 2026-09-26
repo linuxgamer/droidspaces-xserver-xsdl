@@ -1,0 +1,9 @@
+[Unit]
+Description=Launches DE and connects to X-server.
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/startxsdl
+
+[Install]
+WantedBy=multi-user.target

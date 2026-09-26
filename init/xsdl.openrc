@@ -1,0 +1,9 @@
+#!/sbin/openrc-run
+
+description="Launches DE and connects to X-server (XSDL)."
+
+command="/usr/bin/startxsdl"
+
+depend() {
+	need localmount
+}

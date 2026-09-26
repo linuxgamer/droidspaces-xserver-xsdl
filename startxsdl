@@ -1,0 +1,50 @@
+#!/usr/bin/bash
+
+export DISPLAY=127.0.0.1:0
+export PULSE_SERVER=tcp:127.0.0.1:4713
+
+# supported DEs, in autodetect priority order (xfce first = droidspaces default)
+declare -A DESKS=(
+    [xfce]="startxfce4"
+    [kde]="startplasma-x11"
+    [mate]="mate-session"
+    [cinnamon]="cinnamon-session"
+    [lxqt]="startlxqt"
+    [lxde]="startlxde"
+    [gnome]="gnome-session"
+    [budgie]="budgie-desktop"
+)
+ORDER="xfce kde mate cinnamon lxqt lxde gnome budgie"
+
+# de can be forced: startxsdl kde
+DE="${1:-}"
+CMD=""
+
+if [ -n "$DE" ]; then
+    CMD="${DESKS[$DE]}"
+    if [ -z "$CMD" ]; then
+        echo "unknown de '$DE', supported: ${ORDER}"
+        exit 1
+    fi
+    if ! command -v "$CMD" >/dev/null; then
+        echo "de '$DE' selected but '$CMD' is not installed"
+        exit 1
+    fi
+else
+    for name in $ORDER; do
+        if command -v "${DESKS[$name]}" >/dev/null; then
+            DE="$name"
+            CMD="${DESKS[$name]}"
+            break
+        fi
+    done
+fi
+
+if [ -z "$CMD" ]; then
+    echo "ERROR: no supported DE found"
+    echo "install one of: ${ORDER}"
+    exit 1
+fi
+
+echo "starting $DE ($CMD) on XSDL..."
+exec "$CMD"
