@@ -21,6 +21,8 @@ SUPPORTED="660 710 720 722 730 732 735 740 750 810 829 830 840"
 case "$GPU_MODEL" in
     *[Aa]dreno*)
         MODEL="$(printf '%s' "$GPU_MODEL" | grep -o '[0-9]\{3\}' | head -1)"
+        # unquoted on purpose: splits the list into one model per line
+        # shellcheck disable=SC2086
         if [ -n "$MODEL" ] && printf '%s\n' $SUPPORTED | grep -qx "$MODEL"; then
             echo "gpu: $GPU_MODEL ($MODEL) — in the tested list"
         elif [ -n "$MODEL" ]; then
@@ -37,6 +39,7 @@ case "$GPU_MODEL" in
 esac
 
 # --- detect distro and pick the matching build ---
+# shellcheck disable=SC1091
 . /etc/os-release 2>/dev/null
 ID="${ID:-unknown}"
 echo "distro: ${PRETTY_NAME:-unknown}"

@@ -1,4 +1,5 @@
 #!/sbin/openrc-run
+# shellcheck shell=sh disable=SC2034  # vars are consumed by openrc-run
 
 description="Launches DE and connects to X-server (XSDL)."
 

@@ -4,6 +4,9 @@ Description=Launches DE and connects to X-server.
 [Service]
 Type=simple
 ExecStart=/usr/bin/startxsdl
+# container may boot before u open the XSDL app
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

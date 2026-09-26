@@ -5,6 +5,24 @@ export PULSE_SERVER=tcp:127.0.0.1:4713
 # some DE parts expect it even over plain X11; set if missing (su sessions)
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
+# --- wait for the XSDL xserver (container may boot before u open the app) ---
+DISPLAY_NUM="${DISPLAY##*:}"; DISPLAY_NUM="${DISPLAY_NUM%%.*}"
+XPORT="$((6000 + DISPLAY_NUM))"
+echo "waiting for XSDL xserver on 127.0.0.1:${XPORT}..."
+UP=0
+for _ in $(seq 1 30); do
+    if (exec 3<>"/dev/tcp/127.0.0.1/$XPORT") 2>/dev/null; then
+        UP=1
+        break
+    fi
+    sleep 1
+done
+if [ "$UP" = 0 ]; then
+    echo "ERROR: XSDL not reachable — is the app running?"
+    echo "start it on ur phone and retry (the service will also retry on its own)"
+    exit 1
+fi
+
 # supported DEs, in autodetect priority order (xfce first = droidspaces default)
 declare -A DESKS=(
     [xfce]="startxfce4"
