@@ -46,6 +46,7 @@ Use the turnip script from the repo root: `../install-turnip.sh`. The pinned bui
 - 6.x (main branch) is an active rewrite and not yet as feature-complete as 5.x; 5.x (legacy branch) is recommended by the author for the full desktop experience
 - the DE starts only when the anlandx session is up; if the container boots before the host daemon, the systemd unit will retry (`Restart=on-failure`), on other inits just restart the service or launch via `startanland` / anland-shell manually
 - keep only ONE display service enabled: either `xsdl.*` or `anland.*`
+- the DE runs as whoever ran the installer (root in a stock droidspaces rootfs); non-root users get a proper per-user service — but then the anlandx session must run as THAT SAME user, the wayland socket is per-user (`/run/user/<uid>`) and `startanland` wont find it otherwise
 
 ## Credits
 
@@ -66,4 +67,4 @@ Use the turnip script from the repo root: `../install-turnip.sh`. The pinned bui
 
 **GPU:** `../install-turnip.sh` — зафиксированная сборка 26.3.0+ как раз та, что добавила поддержку anland.
 
-**Нюансы:** 6.x ещё не догнала 5.x по функциям (для полного десктопа автор советует 5.x); сервис стартует DE только при поднятом anlandx (systemd-юнит сам перезапускается, на остальных init — руками); держи включённым только ОДИН дисплейный сервис — `xsdl.*` или `anland.*`.
+**Нюансы:** 6.x ещё не догнала 5.x по функциям (для полного десктопа автор советует 5.x); сервис стартует DE только при поднятом anlandx (systemd-юнит сам перезапускается, на остальных init — руками); держи включённым только ОДИН дисплейный сервис — `xsdl.*` или `anland.*`. DE запускается от того юзера, кто запускал установщик (в стандартном rootfs это root); если юзер не root — сессия anlandx должна работать от того же юзера, wayland-сокет пользовательский (`/run/user/<uid>`), иначе `startanland` его не найдёт.
