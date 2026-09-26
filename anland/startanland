@@ -1,0 +1,67 @@
+#!/usr/bin/bash
+
+# --- find the wayland socket published by anlandx ---
+if [ -z "$WAYLAND_DISPLAY" ]; then
+    RD="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    for sock in "$RD"/wayland-*; do
+        if [ -S "$sock" ]; then
+            WAYLAND_DISPLAY="${sock##*/}"
+            break
+        fi
+    done
+fi
+if [ -z "$WAYLAND_DISPLAY" ]; then
+    echo "ERROR: no anland wayland socket in ${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    echo "is the anlandx session up? start it first or launch apps via anland-shell"
+    exit 1
+fi
+export WAYLAND_DISPLAY
+echo "wayland: $WAYLAND_DISPLAY"
+
+# supported DEs with wayland sessions, in autodetect priority order
+# (X11-only DEs like mate/cinnamon/lxde/budgie are not here — see README)
+declare -A DESKS=(
+    [kde]="startplasma-wayland"
+    [gnome]="gnome-session"
+    [xfce]="xfce4-session"
+    [lxqt]="startlxqtwayland"
+)
+ORDER="kde gnome xfce lxqt"
+
+# de can be forced: startanland kde
+DE="${1:-}"
+CMD=""
+
+if [ -n "$DE" ]; then
+    CMD="${DESKS[$DE]}"
+    if [ -z "$CMD" ]; then
+        echo "unknown de '$DE', supported: ${ORDER}"
+        exit 1
+    fi
+    if ! command -v "$CMD" >/dev/null; then
+        echo "de '$DE' selected but '$CMD' is not installed"
+        exit 1
+    fi
+else
+    for name in $ORDER; do
+        if command -v "${DESKS[$name]}" >/dev/null; then
+            DE="$name"
+            CMD="${DESKS[$name]}"
+            break
+        fi
+    done
+fi
+
+if [ -z "$CMD" ]; then
+    echo "ERROR: no supported DE found"
+    echo "install one of: ${ORDER}"
+    exit 1
+fi
+
+# xfce wayland is experimental and needs a compositor backend
+if [ "$DE" = "xfce" ] && ! command -v labwc >/dev/null; then
+    echo "WARNING: xfce4 wayland (4.20+) needs labwc installed"
+fi
+
+echo "starting $DE ($CMD) on anland..."
+exec "$CMD"

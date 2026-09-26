@@ -1,0 +1,9 @@
+#!/sbin/openrc-run
+
+description="Launches DE on anland (Wayland bridge)."
+
+command="/usr/bin/startanland"
+
+depend() {
+	need localmount
+}

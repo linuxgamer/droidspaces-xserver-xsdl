@@ -24,6 +24,7 @@ The container pushes X11 + audio over localhost to XSDL. A tiny init service sta
 | `init/xsdl.openrc` | openrc script |
 | `init/xsdl.runit` | runit run script |
 | `install-turnip.sh` | downloads + installs turnip (vulkan for adreno), optional |
+| `anland/` | optional sub-project: same setup but for the [anland](https://github.com/SuperTurtleDev/anland) wayland host — native android windows instead of one XSDL screen (rooted devices only, see `anland/README.md`) |
 
 ## Quick start
 
@@ -92,3 +93,5 @@ sudo apt install xfce4 xfce4-terminal
 **Поддерживается:** init — systemd/openrc/runit; DE — xfce/kde/mate/cinnamon/lxqt/lxde/gnome/budgie (`startxsdl kde` — явно указать); turnip — debian trixie / ubuntu noble,questing,resolute / fedora 43,44 / alpine 3.24 / arch / void; только arm64 + adreno (протестированы: 660 710 720 722 730 732 735 740 750 810 829 830 840).
 
 **Частые проблемы:** systemd-ошибка в chroot — запускать `/usr/bin/startxsdl` руками; «adreno not detected» — контейнер скрывает `/dev/kgsl`, предупреждение можно игнорировать; vulkan не работает — `MESA_LOADER_DRIVER_OVERRIDE=kgsl`; чёрный экран/нет звука — XSDL должен быть запущен, проверь `DISPLAY=127.0.0.1:0` и `PULSE_SERVER=tcp:127.0.0.1:4713`.
+
+**Альтернатива для рутированных устройств:** [anland](https://github.com/SuperTurtleDev/anland) — каждое Linux-окно становится настоящим нативным Android-окном. Скрипты запуска под него лежат в [anland/README.md](anland/README.md).

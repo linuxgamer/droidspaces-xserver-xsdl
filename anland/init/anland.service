@@ -1,0 +1,12 @@
+[Unit]
+Description=Launches DE on anland (Wayland bridge).
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/startanland
+# anland host daemon may not be up when the container boots
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
