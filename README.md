@@ -64,7 +64,6 @@ all scripts auto-detect stuff and tell u what they found; nothing gets auto-inst
 ## Credits
 
 - turnip builds: [lfdevs/mesa-for-android-container](https://github.com/lfdevs/mesa-for-android-container)
-- [Xserver XSDL](https://github.com/pelya/commandergenius) by pelya
 
 ## License
 

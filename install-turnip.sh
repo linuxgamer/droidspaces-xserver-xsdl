@@ -1,8 +1,9 @@
 #!/usr/bin/bash
 
 # turnip (adreno vulkan) builds, source: https://github.com/lfdevs/mesa-for-android-container
-# bump TAG when a new release drops
-TAG="mesa-26.3.0-devel-20260824"
+# bump TAG when a new release drops; assets are named turnip_<ver>_<distro>_arm64.tar.gz
+TAG="turnip-26.3.0-devel-20260824"
+VER="${TAG#turnip-}"  # 26.3.0-devel-20260824
 URL="https://github.com/lfdevs/mesa-for-android-container/releases/download/$TAG"
 
 # --- arch check: builds are arm64 only ---
@@ -45,15 +46,16 @@ ID="${ID:-unknown}"
 echo "distro: ${PRETTY_NAME:-unknown}"
 
 case "$ID" in
-    debian)
-        [ -z "$VERSION_CODENAME" ] && echo "WARNING: no VERSION_CODENAME in os-release, assuming trixie"
-        ASSET="debian_${VERSION_CODENAME:-trixie}_arm64.tar.gz"
+    debian) ASSET="turnip_${VER}_debian_${VERSION_CODENAME:-trixie}_arm64.tar.gz" ;;
+    ubuntu) ASSET="turnip_${VER}_ubuntu_${VERSION_CODENAME}_arm64.tar.gz" ;;
+    fedora) ASSET="turnip_${VER}_fedora_${VERSION_ID%%.*}_arm64.tar.gz" ;;
+    alpine) ASSET="turnip_${VER}_alpine_${VERSION_ID%.*}_arm64.tar.gz" ;;
+    arch)
+        # arch gets a pacman pkg instead, and its name doesn't follow turnip_<ver>
+        # the trailing pkg rev (-1) can change between releases, bump it with TAG
+        ASSET="vulkan-freedreno-1-${VER%%-*}-1-aarch64.pkg.tar.xz"
         ;;
-    ubuntu) ASSET="ubuntu_${VERSION_CODENAME}_arm64.tar.gz" ;;
-    fedora) ASSET="fedora_${VERSION_ID%%.*}_arm64.tar.gz" ;;
-    alpine) ASSET="alpine_${VERSION_ID%.*}_arm64.tar.gz" ;;
-    arch)   ASSET="archlinux_arm64.tar" ;;
-    void)   ASSET="void_arm64.tar.gz" ;;
+    void)   ASSET="turnip_${VER}_void_arm64.tar.gz" ;;
     *)
         echo "ERROR: distro '$ID' not supported (debian/ubuntu/fedora/alpine/arch/void)"
         echo "check releases manually: $URL"
@@ -77,8 +79,12 @@ mkdir -p turnip
 cd turnip || exit 1
 echo "downloading $ASSET..."
 $DL "$ASSET" "$URL/$ASSET" || {
-    echo "ERROR: download failed"
-    echo "ur distro version may have no build, check: $URL"
+    rm -f "$ASSET"
+    echo "ERROR: download failed for '$ASSET'"
+    echo "ur distro version may have no build; assets available in $TAG:"
+    curl -fsSL "https://api.github.com/repos/lfdevs/mesa-for-android-container/releases/tags/$TAG" 2>/dev/null \
+        | grep -oE '"name"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4 | sed 's/^/  /' \
+        || echo "  (could not list them, check: $URL)"
     exit 1
 }
 
